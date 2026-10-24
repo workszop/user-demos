@@ -1,0 +1,11 @@
+# intermediate working artifacts (never committed)
+mockups/
+plans/
+superpowers/
+progress.md
+review*.md
+*.plan.md
+*.draft.*
+scratch/
+# favicon generator output snippet (already pasted into index.html)
+favicon-head.html
