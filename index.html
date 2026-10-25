@@ -296,6 +296,7 @@ button { font: inherit; color: inherit; }
 .tone-green { background: var(--green-soft); color: var(--green-ink); }
 .tone-grape { background: var(--grape-soft); color: var(--grape-ink); }
 .tone-stone { background: var(--paper-3); color: var(--ink); }
+.tone-red { background: var(--red-soft); color: var(--red-ink); }
 .tone-lane { background: var(--tone); color: var(--tone-ink); }
 .chip { font-family: var(--font-mono); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; padding: 5px 11px; border-radius: var(--r-pill); white-space: nowrap; transition: background-color .3s, color .3s; }
 
@@ -323,6 +324,10 @@ button { font: inherit; color: inherit; }
 .cite { display: inline-grid; place-items: center; min-width: 22px; height: 21px; padding: 0 6px; margin: 0 1px; border-radius: 6px; background: var(--blue-soft); color: var(--blue-ink); font: 500 12px var(--font-mono); vertical-align: 2px; }
 .srcs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line-2); }
 .src { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--r-pill); padding: 3px 9px 3px 4px; animation: msg-in .35s ease-out; }
+.src.nosrc { color: var(--red-600); border-color: var(--red-600); padding-left: 7px; }
+.src.nosrc .ic { width: 16px; height: 16px; }
+.msg.bot.noans { border-color: var(--red-600); }
+.cite.weak { background: var(--red-soft); color: var(--red-ink); }
 .caret { display: inline-block; width: 2px; height: 1.1em; background: var(--ink); vertical-align: -3px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .input-bar { height: 72px; flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line); }
@@ -378,6 +383,8 @@ button { font: inherit; color: inherit; }
 .doc[data-state="hit"] .ds span { background: var(--paper); }
 .doc .rk { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--yellow); font: 500 11px var(--font-mono); display: grid; place-items: center; opacity: 0; transform: scale(.6); transition: opacity .25s, transform .25s; }
 .doc[data-state="hit"] .rk { opacity: 1; transform: none; }
+/* picked although the match is weak (score below WEAK_SCORE) */
+.doc[data-state="hit"][data-weak="1"] { background: var(--red-soft); border-color: var(--red-soft); color: var(--red-ink); }
 .docs-side { display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
 .docs-side .blk { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; transition: opacity .35s; }
 .docs-side .blk.off { opacity: 0; }
@@ -392,6 +399,8 @@ button { font: inherit; color: inherit; }
 .hrow .s { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--ink); }
 .hrow .bar { grid-column: 2 / 4; height: 6px; border-radius: var(--r-pill); background: var(--paper-3); overflow: hidden; }
 .hrow .bar span { display: block; height: 100%; background: var(--ink); border-radius: var(--r-pill); transition: width .5s; }
+.hrow.weak .s { color: var(--red-600); }
+.hrow.weak .bar span { background: var(--red-600); }
 
 /* embed */
 .emb { flex: 1; display: grid; grid-template-columns: 1fr 44px 190px 44px 1fr; align-items: center; gap: 0; }
@@ -484,6 +493,12 @@ button { font: inherit; color: inherit; }
 .ibtn.txt { width: auto; padding: 0 12px; border-radius: var(--r-pill); font-family: var(--font-mono); font-size: 13px; gap: 6px; display: inline-flex; align-items: center; }
 .play-ic, .pause-ic { display: none; }
 #bPlay[data-playing="true"] .pause-ic, #bPlay[data-playing="false"] .play-ic { display: contents; }
+/* step-by-step mode: a finished step turns the play button into "Next step" */
+.next-ic { display: none; }
+#bPlay[data-held="true"] { width: auto; padding: 0 20px; border-radius: var(--r-pill); }
+#bPlay[data-held="true"] .play-ic, #bPlay[data-held="true"] .pause-ic { display: none; }
+#bPlay[data-held="true"] .next-ic { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-weight: 700; font-size: 15px; white-space: nowrap; animation: msg-in .35s ease-out; }
+.ibtn.txt[aria-pressed="true"] { background: var(--ink); color: var(--yellow); border-color: var(--ink); }
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
@@ -613,7 +628,7 @@ button { font: inherit; color: inherit; }
         <div class="view" data-view="retrieve">
           <div class="v-label"><span class="badge tone-yellow"><i data-lucide="file-text" class="ic"></i></span><span data-i18n="v_retrieve"></span></div>
           <div class="cards3" id="cards3"></div>
-          <div class="callout tone-blue edu-block reveal" id="retrNote" data-i18n="retrCaption"></div>
+          <div class="callout tone-blue edu-block reveal" id="retrNote"></div>
         </div>
         <div class="view" data-view="augment">
           <div class="v-label"><span class="badge tone-yellow"><i data-lucide="layers" class="ic"></i></span><span data-i18n="v_augment"></span></div>
@@ -643,7 +658,7 @@ button { font: inherit; color: inherit; }
         <div class="view" data-view="summary">
           <div class="v-label"><span class="badge tone-yellow"><i data-lucide="circle-check" class="ic"></i></span><span data-i18n="v_summary"></span></div>
           <div class="stats4" id="stats4"></div>
-          <div class="field-l" data-i18n="sources"></div>
+          <div class="field-l" id="srcLabel"></div>
           <div class="srclist" id="srcList"></div>
         </div>
       </div>
@@ -652,11 +667,12 @@ button { font: inherit; color: inherit; }
   <div class="tlbar">
     <div class="ctrls">
       <button type="button" class="ibtn" id="bPrev"><i data-lucide="skip-back" class="ic"></i></button>
-      <button type="button" class="ibtn primary" id="bPlay"><span class="play-ic"><i data-lucide="play" class="ic"></i></span><span class="pause-ic"><i data-lucide="pause" class="ic"></i></span></button>
+      <button type="button" class="ibtn primary" id="bPlay"><span class="play-ic"><i data-lucide="play" class="ic"></i></span><span class="pause-ic"><i data-lucide="pause" class="ic"></i></span><span class="next-ic"><span id="nextTxt"></span><i data-lucide="arrow-right" class="ic"></i></span></button>
       <button type="button" class="ibtn" id="bNext"><i data-lucide="skip-forward" class="ic"></i></button>
       <button type="button" class="ibtn" id="bRestart"><i data-lucide="rotate-ccw" class="ic"></i></button>
     </div>
     <div class="lanes" id="lanes" role="group"></div>
+    <button type="button" class="ibtn txt" id="bMode"><i data-lucide="footprints" class="ic"></i><span id="modeTxt"></span></button>
     <button type="button" class="ibtn txt" id="bSpeed"><i data-lucide="gauge" class="ic"></i><span id="speedTxt">1×</span></button>
   </div>
 </div>
@@ -670,6 +686,8 @@ const DESIGN_W = 1000;
 const DESIGN_H = 660;
 const SPEEDS = [1, 1.5, 2, 0.5];
 const LANG_KEY = 'ragFocus.lang';
+const MODE_KEY = 'ragFocus.stepMode';
+const WEAK_SCORE = 0.6;  // a retrieved chunk below this score does not really match the question
 
 const T = {
   pl: {
@@ -711,7 +729,11 @@ const T = {
     s_generate_t: 'Odpowiedź pojawia się na ekranie', s_generate_d: 'Model językowy pisze odpowiedź na podstawie znalezionych fragmentów, a użytkownik widzi, jak tekst pojawia się słowo po słowie.',
     
     s_idle_k: 'Użytkownik widzi tylko zwykły czat.', s_type_k: '', s_send_k: 'Enter uruchamia cały proces w tle.', s_embed_k: 'Tekst zamienia się w liczby: wektor.', s_search_k: 'Wygrywają 3 najlepiej pasujące fragmenty.', s_retrieve_k: 'Do modelu trafią tylko 3 fragmenty.', s_augment_k: 'Prompt = instrukcja + fragmenty + pytanie.', s_generate_k: 'Model pisze, użytkownik czyta na bieżąco.', s_done_k: 'Każda informacja ma swoje źródło.',
-    s_done_t: 'Odpowiedź ze źródłami', s_done_d: 'Pod odpowiedzią pojawiają się odnośniki do dokumentów, z których pochodzi każda informacja. Za chwilę kolejne pytanie.',
+    s_done_t: 'Odpowiedź ze źródłami', s_done_d: 'Pod odpowiedzią pojawiają się odnośniki do dokumentów, z których pochodzi każda informacja.',
+    nextStep: 'Następny krok', nextScenario: 'Następne pytanie', mode_step: 'Krok po kroku', ctrl_mode: 'Zatrzymuj się na końcu każdego kroku',
+    heldLive: 'Koniec kroku. Przejdź dalej przyciskiem „Następny krok”.',
+    retrCaptionWeak: 'Żaden fragment nie pasuje dobrze do pytania. Wyszukiwarka i tak zwraca trzy najlepsze, więc trafią do modelu.',
+    sourcesChecked: 'Sprawdzone fragmenty (bez odpowiedzi)', noSource: 'brak źródła w bazie',
   },
   en: {
     title: 'RAG inside out: what happens between a question and its answer?',
@@ -752,7 +774,11 @@ const T = {
     s_generate_t: 'The answer appears on screen', s_generate_d: 'The language model writes the answer from the retrieved chunks, and the user sees the text appear word by word.',
     
     s_idle_k: 'The user only sees a plain chat.', s_type_k: '', s_send_k: 'Enter starts the whole back-end process.', s_embed_k: 'Text turns into numbers: a vector.', s_search_k: 'The 3 best-matching chunks win.', s_retrieve_k: 'Only 3 chunks go to the model.', s_augment_k: 'Prompt = instruction + chunks + question.', s_generate_k: 'The model writes, the user reads along.', s_done_k: 'Every fact comes with its source.',
-    s_done_t: 'Answer with sources', s_done_d: 'Links to the source documents appear under the answer, one for each fact. The next question starts shortly.',
+    s_done_t: 'Answer with sources', s_done_d: 'Links to the source documents appear under the answer, one for each fact.',
+    nextStep: 'Next step', nextScenario: 'Next question', mode_step: 'Step by step', ctrl_mode: 'Stop at the end of every step',
+    heldLive: 'End of step. Continue with "Next step".',
+    retrCaptionWeak: 'No chunk matches the question well. Search still returns the top three, so they go to the model anyway.',
+    sourcesChecked: 'Checked chunks (no answer)', noSource: 'no source in the base',
   },
 };
 
@@ -783,9 +809,9 @@ const DOCS_PER_TOPIC = 5;
 // Chunks that no demo question retrieves; the retrieved ones come from SCENARIOS[].hits
 const DOC_EXTRA = {
   leave:  [{ pl: 'Urlop na żądanie', en: 'Leave on demand' }, { pl: 'Urlop okolicznościowy', en: 'Special leave' }],
-  remote: [{ pl: 'Zwrot kosztów pracy zdalnej', en: 'Remote work allowance' }, { pl: 'Godziny dostępności', en: 'Availability hours' }, { pl: 'Bezpieczeństwo w domu', en: 'Home office safety' }],
-  pay:    [{ pl: 'Terminy wypłat', en: 'Payday schedule' }, { pl: 'Premie kwartalne', en: 'Quarterly bonuses' }, { pl: 'Nadgodziny', en: 'Overtime' }, { pl: 'Delegacje', en: 'Business travel' }],
-  train:  [{ pl: 'Onboarding', en: 'Onboarding' }, { pl: 'Mentoring', en: 'Mentoring' }, { pl: 'Konferencje', en: 'Conferences' }],
+  remote: [{ pl: 'Godziny dostępności', en: 'Availability hours' }, { pl: 'Bezpieczeństwo w domu', en: 'Home office safety' }],
+  pay:    [{ pl: 'Terminy wypłat', en: 'Payday schedule' }, { pl: 'Nadgodziny', en: 'Overtime' }, { pl: 'Delegacje', en: 'Business travel' }],
+  train:  [{ pl: 'Kalendarz szkoleń 2026', en: 'Training calendar 2026' }, { pl: 'Procedura szkoleń, §2', en: 'Training procedure, §2' }, { pl: 'Onboarding', en: 'Onboarding' }, { pl: 'Mentoring', en: 'Mentoring' }, { pl: 'Konferencje', en: 'Conferences' }],
   it:     [{ pl: 'Hasła i MFA', en: 'Passwords and MFA' }, { pl: 'Zgłaszanie awarii', en: 'Reporting faults' }, { pl: 'Dostęp VPN', en: 'VPN access' }, { pl: 'Drukarki', en: 'Printers' }],
 };
 
@@ -823,19 +849,46 @@ const SCENARIOS = [
     },
   },
   {
-    label: { pl: 'Szkolenia', en: 'Training' },
-    q: { pl: 'Jak zapisać się na szkolenie z AI?', en: 'How do I sign up for AI training?' },
+    // The base has nothing on benefits: search still returns its top 3, all weak, and the model says so
+    label: { pl: 'Karta sportowa', en: 'Gym membership' },
+    none: true,
+    q: { pl: 'Czy firma dopłaca do karty sportowej?', en: 'Does the company pay towards a gym membership?' },
     hits: [
-      { topic: 'train', slot: 0, score: 0.88, src: { pl: 'Kalendarz szkoleń 2026', en: 'Training calendar 2026' },
-        text: { pl: 'Szkolenie „AI w pracy biurowej” odbywa się co miesiąc, zapisy trwają do 5. dnia miesiąca.', en: 'The "AI at the office" course runs every month; sign-up closes on the 5th.' } },
-      { topic: 'train', slot: 1, score: 0.80, src: { pl: 'Procedura szkoleń, §2', en: 'Training procedure, §2' },
-        text: { pl: 'Zgłoszenie składasz w portalu Szkolenia, a akceptuje je bezpośredni przełożony.', en: 'Apply in the Training portal; your line manager approves the request.' } },
-      { topic: 'pay', slot: 0, score: 0.69, src: { pl: 'Budżet szkoleniowy', en: 'Training budget' },
+      { topic: 'pay', slot: 0, score: 0.47, src: { pl: 'Budżet szkoleniowy', en: 'Training budget' },
         text: { pl: 'Każdy pracownik ma roczny budżet szkoleniowy 3000 zł.', en: 'Each employee has an annual training budget of PLN 3,000.' } },
+      { topic: 'pay', slot: 1, score: 0.42, src: { pl: 'Regulamin premii, §4', en: 'Bonus rules, §4' },
+        text: { pl: 'Premia kwartalna zależy od wyników zespołu i wynosi do 10% pensji.', en: 'The quarterly bonus depends on team results and is up to 10% of salary.' } },
+      { topic: 'remote', slot: 2, score: 0.36, src: { pl: 'Polityka pracy zdalnej, §7', en: 'Remote work policy, §7' },
+        text: { pl: 'Pracownik zdalny dostaje 150 zł miesięcznie na prąd i internet.', en: 'Remote employees get PLN 150 a month towards electricity and internet.' } },
     ],
     answer: {
-      pl: 'Zgłoś się w portalu Szkolenia, wniosek zatwierdza Twój przełożony [2]. Szkolenie „AI w pracy biurowej” rusza co miesiąc, a zapisy trwają do 5. dnia miesiąca [1]. Koszt pokrywa roczny budżet szkoleniowy 3000 zł [3].',
-      en: 'Apply in the Training portal, your manager approves the request [2]. The "AI at the office" course starts every month and sign-up closes on the 5th [1]. The cost comes from your annual training budget of PLN 3,000 [3].',
+      pl: 'Nie znalazłem tej informacji w dokumentach firmy. Sprawdzone fragmenty dotyczą budżetu szkoleniowego, premii i dopłaty do pracy zdalnej, ale żaden nie mówi o karcie sportowej. O aktualne benefity zapytaj dział HR.',
+      en: 'I could not find this in the company documents. The chunks I checked cover the training budget, bonuses and the remote work allowance, but none of them mentions a gym membership. Ask HR about current benefits.',
+    },
+    // narration that differs from the default steps (t = title, k = key idea, d = description)
+    steps: {
+      search: {
+        k: { pl: 'Wyszukiwarka zawsze coś zwróci, nawet słabe dopasowanie.', en: 'Search always returns something, even a weak match.' },
+        d: { pl: 'System porównuje pytanie z każdym fragmentem w bazie. Żaden nie mówi o karcie sportowej, ale trzy z najwyższą oceną i tak przechodzą dalej. Najlepsza ocena to tylko {top}.', en: 'The system compares the question with every chunk in the base. None mentions a gym membership, yet the three highest-scoring chunks still move on. The best score is only {top}.' },
+      },
+      retrieve: {
+        k: { pl: 'Niska ocena: fragment nie odpowiada na pytanie.', en: 'Low score: the chunk does not answer the question.' },
+        d: { pl: 'Z bazy wracają fragmenty o budżecie szkoleniowym, premiach i dopłacie do pracy zdalnej. Mówią o pieniądzach od firmy, ale nie o karcie sportowej.', en: 'The chunks that come back cover the training budget, bonuses and the remote work allowance. They are about money from the company, but not about a gym membership.' },
+      },
+      augment: {
+        k: { pl: 'Instrukcja każe przyznać, że odpowiedzi nie ma.', en: 'The instruction says to admit there is no answer.' },
+        d: { pl: 'Prompt składa się jak zawsze: instrukcja, trzy fragmenty i pytanie. Tym razem liczy się ostatnie zdanie instrukcji: jeśli kontekst nie zawiera odpowiedzi, model ma to powiedzieć wprost.', en: 'The prompt is built as always: instruction, three chunks and the question. This time the last sentence of the instruction matters: if the context has no answer, the model must say so plainly.' },
+      },
+      generate: {
+        t: { pl: 'Asystent mówi: nie wiem', en: 'The assistant says: I don\'t know' },
+        k: { pl: 'Lepiej „nie wiem” niż zmyślona odpowiedź.', en: 'Better "I don\'t know" than a made-up answer.' },
+        d: { pl: 'Model czyta fragmenty i nie znajduje w nich informacji o karcie sportowej. Zamiast zgadywać, mówi to wprost i podpowiada, gdzie szukać dalej.', en: 'The model reads the chunks and finds nothing about a gym membership. Instead of guessing, it says so and suggests where to ask.' },
+      },
+      done: {
+        t: { pl: 'Odpowiedź bez źródeł', en: 'An answer without sources' },
+        k: { pl: 'Brak źródła to luka w bazie wiedzy.', en: 'No source means a gap in the knowledge base.' },
+        d: { pl: 'Pod odpowiedzią nie ma odnośników, bo żaden dokument jej nie potwierdza. Dla firmy to sygnał, że do bazy trzeba dodać dokument o benefitach.', en: 'There are no links under the answer, because no document backs it. For the company it is a signal to add a benefits document to the base.' },
+      },
     },
   },
 ];
@@ -848,6 +901,8 @@ const state = {
   step: 0,
   t: 0,               // ms into the current step
   playing: true,
+  stepMode: true,     // stop at the end of every step and wait for "Next step"
+  wasHeld: false,
   speed: 0,           // index into SPEEDS
   manualFocus: null,  // overrides the step focus until the step changes
   last: 0,
@@ -865,6 +920,7 @@ const els = {
   nIcons: $('nIcons'), nTitle: $('nTitle'), nCount: $('nCount'), nDesc: $('nDesc'), nLane: $('nLane'), nKey: $('nKey'), nKeyBox: $('nKeyBox'), lanes: $('lanes'), scSeg: $('scSeg'),
   sideBadge: $('sideBadge'), sideCard: document.querySelector('.sidecard'), narr: document.querySelector('.narr'),
   bPrev: $('bPrev'), bPlay: $('bPlay'), bNext: $('bNext'), bRestart: $('bRestart'), bSpeed: $('bSpeed'), speedTxt: $('speedTxt'),
+  bMode: $('bMode'), modeTxt: $('modeTxt'), nextTxt: $('nextTxt'),
   dStatus: $('dStatus'), eStatus: $('eStatus'),
   mUser: $('mUser'), mThink: $('mThink'), thinkTxt: $('thinkTxt'), mAns: $('mAns'), ansTxt: $('ansTxt'), ansSrcs: $('ansSrcs'),
   field: $('field'), fieldTxt: $('fieldTxt'), fieldPh: $('fieldPh'), caret: $('caret'), sendBtn: $('sendBtn'),
@@ -873,7 +929,7 @@ const els = {
   toks: $('toks'), embModel: $('embModel'), vec: $('vec'), vecNums: $('vecNums'),
   cards3: $('cards3'), retrNote: $('retrNote'),
   pbI: $('pbI'), pbITxt: $('pbITxt'), pbC: $('pbC'), pbCTxt: $('pbCTxt'), pbQ: $('pbQ'), pbQTxt: $('pbQTxt'), tokNum: $('tokNum'), augNote: $('augNote'),
-  stream: $('stream'), stats4: $('stats4'), srcList: $('srcList'),
+  stream: $('stream'), stats4: $('stats4'), srcList: $('srcList'), srcLabel: $('srcLabel'),
   live: $('live'), langSeg: $('langSeg'),
 };
 const views = [...document.querySelectorAll('.view')];
@@ -929,6 +985,14 @@ function tokenize(q) {
 }
 function stepDur(i = state.step) { const s = STEPS[i]; return s.dur ?? (s.id === 'type' ? state.sc.typeDur : state.sc.answerDur); }
 function currentFocus() { return state.manualFocus || STEPS[state.step].focus; }
+const isHeld = () => state.stepMode && state.t >= stepDur();
+const isWeak = (h) => h.score < WEAK_SCORE;
+// Step narration: a scenario may override the title / key idea / description of a step
+function stepText(id, part) {
+  const o = state.sc.S.steps && state.sc.S.steps[id] && state.sc.S.steps[id][part];
+  const top = state.sc.hits[0].score.toFixed(2);
+  return o ? L(o).replace('{top}', top) : t('s_' + id + '_' + part);
+}
 
 // Derived per scenario + language: everything the renderers read
 function buildScenario() {
@@ -939,15 +1003,16 @@ function buildScenario() {
   const ansWords = words(ans);
   const hits = S.hits;
   const titles = kbTitles();
+  const maxOther = Math.min(0.57, Math.min(...hits.map((h) => h.score)) - 0.06);  // non-hits stay below the weakest hit
   const docs = TOPICS.flatMap((tp) => titles[tp.id].map((title, slot) => {
     const hit = hits.findIndex((h) => h.topic === tp.id && h.slot === slot);
-    return { topic: tp.id, slot, title, hit, score: hit >= 0 ? hits[hit].score : +(0.12 + rnd(q, tp.id + slot) * 0.45).toFixed(2) };
+    return { topic: tp.id, slot, title, hit, score: hit >= 0 ? hits[hit].score : +(0.12 + rnd(q, tp.id + slot) * (maxOther - 0.12)).toFixed(2) };
   }));
   const vec = Array.from({ length: 32 }, (_, i) => +((rnd(q, 'v' + i) * 2 - 1) * (0.25 + rnd(q, 'm' + i) * 0.75)).toFixed(2));
   const ctxText = hits.map((h, i) => `[${i + 1}] ${L(h.src)}: ${L(h.text)}`).join(' ');
   const tok = { i: Math.round(t('instr').length / 4), c: Math.round(ctxText.length / 4), q: Math.round(q.length / 4) };
   const cites = new Set((ans.match(/\[\d\]/g) || [])).size;
-  state.sc = { S, q, ans, times, typeDur: acc + 500, ansWords, answerDur: ansWords.length * 150 + 1600, hits, docs, vec, toks: tokenize(q), tok, cites };
+  state.sc = { S, none: !!S.none, q, ans, times, typeDur: acc + 500, ansWords, answerDur: ansWords.length * 150 + 1600, hits, docs, vec, toks: tokenize(q), tok, cites };
   state.dom = {};
 }
 
@@ -971,11 +1036,11 @@ function buildScenarioDOM() {
   const sc = state.sc, lang = state.lang;
   // document base
   els.docs.innerHTML = TOPICS.map((tp) => `<div class="dcol"><div class="dcol-h">${icon(tp.icon)}<span>${esc(tp[lang])}</span></div>` +
-    sc.docs.filter((d) => d.topic === tp.id).map((d) => `<div class="doc" data-state="idle" data-hit="${d.hit}"><span class="dt">${esc(L(d.title))}</span><span class="ds"><span style="width:${Math.round(d.score * 100)}%"></span></span><span class="rk">${d.hit + 1}</span></div>`).join('') + '</div>').join('');
+    sc.docs.filter((d) => d.topic === tp.id).map((d) => `<div class="doc" data-state="idle" data-hit="${d.hit}" data-weak="${d.hit >= 0 && d.score < WEAK_SCORE ? 1 : 0}"><span class="dt">${esc(L(d.title))}</span><span class="ds"><span style="width:${Math.round(d.score * 100)}%"></span></span><span class="rk">${d.hit + 1}</span></div>`).join('') + '</div>').join('');
   const docNodes = [...els.docs.querySelectorAll('.doc')];
   docEls = TOPICS.flatMap((tp) => sc.docs.filter((d) => d.topic === tp.id)).map((d, i) => ({ el: docNodes[i], hit: d.hit }));
   els.qChipTxt.textContent = sc.q;
-  els.hitList.innerHTML = sc.hits.map((h, i) => `<div class="hrow reveal hide"><span class="badge tone-blue">${i + 1}</span><span class="t">${esc(L(h.src))}</span><span class="s">${h.score.toFixed(2)}</span><div class="bar"><span style="width:0%"></span></div></div>`).join('');
+  els.hitList.innerHTML = sc.hits.map((h, i) => `<div class="hrow reveal hide${isWeak(h) ? ' weak' : ''}"><span class="badge ${isWeak(h) ? 'tone-red' : 'tone-blue'}">${i + 1}</span><span class="t">${esc(L(h.src))}</span><span class="s">${h.score.toFixed(2)}</span><div class="bar"><span style="width:0%"></span></div></div>`).join('');
   // embed
   els.toks.innerHTML = sc.toks.map((x) => `<span class="tok reveal hide${x.cont ? ' cont' : ''}">${esc(x.s)}</span>`).join('');
   els.vec.innerHTML = sc.vec.map((v) => {
@@ -984,7 +1049,10 @@ function buildScenarioDOM() {
   }).join('');
   els.vecNums.textContent = '[' + sc.vec.slice(0, 5).map((v) => v.toFixed(2)).join(', ') + ', …]  ' + t('vecNote');
   // retrieve cards
-  els.cards3.innerHTML = sc.hits.map((h, i) => `<article class="ccard reveal hide"><div class="hd"><span class="badge tone-blue">${i + 1}</span><span class="src-t">${esc(L(h.src))}</span><span class="chip tone-ink">${h.score.toFixed(2)}</span></div><div class="bd">${esc(L(h.text))}</div><div class="ft">${esc(TOPICS.find((x) => x.id === h.topic)[lang])}</div></article>`).join('');
+  els.cards3.innerHTML = sc.hits.map((h, i) => `<article class="ccard reveal hide" data-weak="${isWeak(h) ? 1 : 0}"><div class="hd"><span class="badge ${isWeak(h) ? 'tone-red' : 'tone-blue'}">${i + 1}</span><span class="src-t">${esc(L(h.src))}</span><span class="chip ${isWeak(h) ? 'tone-red' : 'tone-ink'}">${h.score.toFixed(2)}</span></div><div class="bd">${esc(L(h.text))}</div><div class="ft">${esc(TOPICS.find((x) => x.id === h.topic)[lang])}</div></article>`).join('');
+  const weak = sc.hits.every(isWeak);
+  setText(els.retrNote, t(weak ? 'retrCaptionWeak' : 'retrCaption'));
+  els.retrNote.className = `callout ${weak ? 'tone-red' : 'tone-blue'} edu-block reveal`;
   // prompt
   els.pbITxt.textContent = t('instr');
   els.pbCTxt.innerHTML = sc.hits.map((h, i) => `<div class="ln">[${i + 1}] ${esc(L(h.src))}: ${esc(L(h.text))}</div>`).join('');
@@ -993,10 +1061,18 @@ function buildScenarioDOM() {
   const stats = [['tone-yellow', '3', t('stat_hits')], ['tone-blue', '≈ ' + (sc.tok.i + sc.tok.c + sc.tok.q), t('stat_tok')],
     ['tone-green', String(sc.ansWords.filter((w) => !/^\[\d\]/.test(w)).length), t('stat_words')], ['tone-ink', String(sc.cites), t('stat_cites')]];
   els.stats4.innerHTML = stats.map(([tone, n, cap]) => `<div class="statk ${tone} edu-block"><span class="num">${esc(n)}</span><span class="cap">${esc(cap)}</span></div>`).join('');
-  const srcRows = sc.hits.map((h, i) => `<div class="trow"><span class="cite">${i + 1}</span>${esc(L(h.src))}<span class="n">${h.score.toFixed(2)}</span></div>`).join('');
+  setText(els.srcLabel, t(sc.none ? 'sourcesChecked' : 'sources'));
+  const srcRows = sc.hits.map((h, i) => `<div class="trow"><span class="cite${isWeak(h) ? ' weak' : ''}">${i + 1}</span>${esc(L(h.src))}<span class="n">${h.score.toFixed(2)}</span></div>`).join('');
   els.srcList.innerHTML = srcRows;
-  els.ansSrcs.innerHTML = sc.hits.map((h, i) => `<span class="src"><span class="cite">${i + 1}</span>${esc(L(h.src))}</span>`).join('');
-  lucide.createIcons({ root: pEngine });
+  els.ansSrcs.innerHTML = sc.none ? `<span class="src nosrc">${icon('circle-x')}${esc(t('noSource'))}</span>`
+    : sc.hits.map((h, i) => `<span class="src"><span class="cite">${i + 1}</span>${esc(L(h.src))}</span>`).join('');
+  els.mAns.classList.toggle('noans', sc.none);
+  labelCells();
+  lucide.createIcons({ root: pEngine }); lucide.createIcons({ root: pDevice });
+}
+
+function labelCells() {
+  els.lanes.querySelectorAll('.cell').forEach((b) => { const i = +b.dataset.step; b.setAttribute('aria-label', `${i + 1}. ${stepText(STEPS[i].id, 't')}`); b.title = b.getAttribute('aria-label'); });
 }
 
 function applyI18n() {
@@ -1007,9 +1083,10 @@ function applyI18n() {
   els.scSeg.setAttribute('aria-label', t('scenarioLabel'));
   els.scSeg.querySelectorAll('button').forEach((b, i) => setText(b, `${i + 1}. ${L(SCENARIOS[i].label)}`));
   els.lanes.setAttribute('aria-label', t('stepsLabel'));
-  els.lanes.querySelectorAll('.cell').forEach((b) => { const i = +b.dataset.step; b.setAttribute('aria-label', `${i + 1}. ${t('s_' + STEPS[i].id + '_t')}`); b.title = b.getAttribute('aria-label'); });
+  labelCells();
   els.swapBtn.setAttribute('aria-label', t('sideHint')); els.swapBtn.title = t('sideHint');
-  [['bPrev', 'ctrl_prev'], ['bPlay', 'ctrl_play'], ['bNext', 'ctrl_next'], ['bRestart', 'ctrl_restart'], ['bSpeed', 'ctrl_speed']].forEach(([id, k]) => { els[id].setAttribute('aria-label', t(k)); els[id].title = t(k); });
+  setText(els.modeTxt, t('mode_step'));
+  [['bPrev', 'ctrl_prev'], ['bPlay', 'ctrl_play'], ['bNext', 'ctrl_next'], ['bRestart', 'ctrl_restart'], ['bSpeed', 'ctrl_speed'], ['bMode', 'ctrl_mode']].forEach(([id, k]) => { els[id].setAttribute('aria-label', t(k)); els[id].title = t(k); });
 }
 
 function layoutPanels(force) {
@@ -1146,14 +1223,14 @@ function renderEngine(st, p) {
 
 function renderNarration(st, p) {
   const idx = state.step;
-  setText(els.nTitle, t('s_' + st.id + '_t'));
-  setText(els.nDesc, t('s_' + st.id + '_d'));
+  setText(els.nTitle, stepText(st.id, 't'));
+  setText(els.nDesc, stepText(st.id, 'd'));
   setText(els.nCount, t('stepOf', { i: idx + 1, n: STEPS.length }));
   [...els.nIcons.children].forEach((s) => s.classList.toggle('cur', s.dataset.for === st.id));
   if (els.nIcons.className !== 'badge nicons tone-lane') els.nIcons.className = 'badge nicons tone-lane';
   els.narr.classList.toggle('lane-device', st.focus === 'device'); els.narr.classList.toggle('lane-engine', st.focus === 'engine');
   setText(els.nLane, t('lane_' + st.focus));
-  const key = t('s_' + st.id + '_k');
+  const key = stepText(st.id, 'k');
   setText(els.nKey, key);
   setHidden(els.nKeyBox, !key);  // steps without a key idea show no callout
   els.lanes.querySelectorAll('.cell').forEach((b) => {
@@ -1164,8 +1241,16 @@ function renderNarration(st, p) {
   });
   els.scSeg.querySelectorAll('button').forEach((b, i) => { const on = i === state.scenario; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on); });
   setText(els.speedTxt, SPEEDS[state.speed] + '×');
-  stage.dataset.playing = state.playing; els.bPlay.dataset.playing = state.playing;
-  stage.classList.toggle('paused', !state.playing);
+  const held = isHeld(), running = state.playing && !held;
+  stage.dataset.playing = running; els.bPlay.dataset.playing = running;
+  stage.classList.toggle('paused', !running);
+  stage.dataset.mode = state.stepMode ? 'step' : 'auto'; stage.dataset.held = held;
+  els.bMode.setAttribute('aria-pressed', state.stepMode);
+  els.bPlay.dataset.held = held;
+  const nextLabel = t(idx === STEPS.length - 1 ? 'nextScenario' : 'nextStep');
+  setText(els.nextTxt, nextLabel);
+  const playLabel = held ? nextLabel : t('ctrl_play');
+  if (els.bPlay.getAttribute('aria-label') !== playLabel) { els.bPlay.setAttribute('aria-label', playLabel); els.bPlay.title = playLabel; }
 }
 
 function render() {
@@ -1179,28 +1264,40 @@ function render() {
 }
 
 // ─── Actions ───
-function announce() { els.live.textContent = `${t('stepOf', { i: state.step + 1, n: STEPS.length })}: ${t('s_' + STEPS[state.step].id + '_t')}`; }
+function announce() { els.live.textContent = `${t('stepOf', { i: state.step + 1, n: STEPS.length })}: ${stepText(STEPS[state.step].id, 't')}`; }
 function goStep(i) {
   const wrap = i >= STEPS.length;
   if (wrap) { setScenario((state.scenario + 1) % SCENARIOS.length, 0); return; }
-  state.step = clamp(i, 0, STEPS.length - 1); state.t = 0; state.manualFocus = null;
+  state.step = clamp(i, 0, STEPS.length - 1); state.t = 0; state.manualFocus = null; state.wasHeld = false;
   announce(); render();
 }
-function setScenario(i, step = 0) { state.scenario = i; buildScenario(); buildScenarioDOM(); state.step = step; state.t = 0; state.manualFocus = null; announce(); render(); }
+function setScenario(i, step = 0) { state.scenario = i; buildScenario(); buildScenarioDOM(); state.step = step; state.t = 0; state.manualFocus = null; state.wasHeld = false; announce(); render(); }
 function setLang(l) {
   state.lang = l; try { localStorage.setItem(LANG_KEY, l); } catch (e) { /* storage unavailable */ }
   const keepT = state.t; buildScenario(); applyI18n(); buildScenarioDOM(); state.t = Math.min(keepT, stepDur() - 1); state.layoutKey = ''; render();
 }
-function togglePlay() { state.playing = !state.playing; render(); }
+// A held step (finished, waiting in step-by-step mode) moves on instead of toggling pause
+function togglePlay() { if (isHeld()) { nextStep(); return; } state.playing = !state.playing; render(); }
+function nextStep() { state.playing = true; goStep(state.step + 1); }
+function toggleMode() {
+  state.stepMode = !state.stepMode;
+  try { localStorage.setItem(MODE_KEY, state.stepMode ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  render();
+}
 function swapFocus() { state.manualFocus = currentFocus() === 'device' ? 'engine' : 'device'; render(); }
 function prevStep() { if (state.t > 700) { state.t = 0; render(); } else goStep(state.step - 1); }
 
+function tick(dt) {
+  if (!state.playing || isHeld()) return;
+  state.t += dt * SPEEDS[state.speed];
+  if (state.t < stepDur()) return;
+  if (!state.stepMode) { goStep(state.step + 1); return; }
+  state.t = stepDur();  // hold on the last frame of the step
+  if (!state.wasHeld) { state.wasHeld = true; els.live.textContent = t('heldLive'); }
+}
 function frame(now) {
   const dt = Math.min(64, now - (state.last || now)); state.last = now;
-  if (state.playing) {
-    state.t += dt * SPEEDS[state.speed];
-    if (state.t >= stepDur()) goStep(state.step + 1);
-  }
+  tick(dt);
   render();
   requestAnimationFrame(frame);
 }
@@ -1212,13 +1309,23 @@ function probe() {
   const kp = Object.keys(T.pl).sort().join(), ke = Object.keys(T.en).sort().join();
   ok('i18n key parity pl/en', kp === ke);
   const kt = kbTitles(); ok('every topic has 5 distinct chunk titles', TOPICS.every((tp) => kt[tp.id].length === DOCS_PER_TOPIC && kt[tp.id].every(Boolean) && new Set(kt[tp.id].map((x) => x.pl)).size === DOCS_PER_TOPIC));
-  SCENARIOS.forEach((s, i) => ok(`scenario ${i} has pl+en q/answer and 3 hits`, s.q.pl && s.q.en && s.answer.pl && s.answer.en && s.hits.length === 3 && s.hits.every((h) => h.src.en && h.text.en)));
+  SCENARIOS.forEach((s, i) => {
+    ok(`scenario ${i} has pl+en q/answer and 3 hits`, s.q.pl && s.q.en && s.answer.pl && s.answer.en && s.hits.length === 3 && s.hits.every((h) => h.src.en && h.text.en));
+    ok(`scenario ${i}: hits sorted by score`, s.hits.every((h, j) => !j || s.hits[j - 1].score >= h.score));
+    const cites = (txt) => (txt.match(/\[\d\]/g) || []).length;
+    if (s.none) ok(`scenario ${i} (no answer): every hit is weak and the answer cites nothing`, s.hits.every((h) => h.score < WEAK_SCORE) && cites(s.answer.pl) === 0 && cites(s.answer.en) === 0);
+    else ok(`scenario ${i}: no weak hits and the answer cites sources`, s.hits.every((h) => h.score >= WEAK_SCORE) && cites(s.answer.pl) > 0 && cites(s.answer.en) > 0);
+    Object.entries(s.steps || {}).forEach(([id, o]) => ok(`scenario ${i}: step override "${id}" is a real step with pl+en`, STEPS.some((x) => x.id === id) && Object.values(o).every((v) => v.pl && v.en)));
+  });
+  ok('at least one scenario cannot be answered from the base', SCENARIOS.some((s) => s.none));
   const saved = { ...state, sc: null, dom: null };
-  const was = state.playing; state.playing = false;
+  const was = state.playing, wasMode = state.stepMode; state.playing = false;
   for (const lang of ['pl', 'en']) {
     state.lang = lang;
     for (let sIdx = 0; sIdx < SCENARIOS.length; sIdx++) {
       state.scenario = sIdx; buildScenario(); buildScenarioDOM();
+      const minHit = Math.min(...state.sc.hits.map((h) => h.score));
+      ok(`${lang}/s${sIdx}: every non-retrieved chunk scores below the retrieved ones`, state.sc.docs.every((d) => d.hit >= 0 || d.score < minHit));
       STEPS.forEach((st, i) => {
         for (const p of [0, 0.5, 0.99]) {
           state.step = i; state.manualFocus = null; state.t = p * stepDur(); render();
@@ -1230,6 +1337,11 @@ function probe() {
           ok(`${tag}: pipeline state`, st.pipe >= 0 && st.pipe < 6 ? active === 1 && pipeEls.nodes[st.pipe].dataset.state === 'active' : active === 0);
           if (st.id === 'type' && p === 0.99) ok(`${tag}: question fully typed`, els.fieldTxt.textContent === state.sc.q);
           if (st.id === 'done') ok(`${tag}: full answer + sources visible`, +els.mAns.dataset.words === state.sc.ansWords.length && !els.ansSrcs.hidden);
+          if (st.id === 'done') ok(`${tag}: no-answer scenario shows "no source", others list sources`, state.sc.none
+            ? els.ansSrcs.querySelectorAll('.nosrc').length === 1 && !els.ansTxt.querySelector('.cite') && els.mAns.classList.contains('noans')
+            : els.ansSrcs.querySelectorAll('.src:not(.nosrc)').length === 3 && !els.mAns.classList.contains('noans'));
+          if (st.id === 'search' && p === 0.99) ok(`${tag}: weak picks marked red exactly in the no-answer scenario`, docEls.filter((d) => d.el.dataset.state === 'hit' && d.el.dataset.weak === '1').length === (state.sc.none ? 3 : 0));
+          ok(`${tag}: narration has a title and description`, els.nTitle.textContent.length > 0 && els.nDesc.textContent.length > 0 && !/\{top\}/.test(els.nDesc.textContent));
           if (st.id === 'idle') ok(`${tag}: no user message yet`, els.mUser.hidden && els.mAns.hidden);
           if (st.id === 'search' && p === 0.99) ok(`${tag}: exactly the 3 retrieved chunks are picked`, docEls.filter((d) => d.el.dataset.state === 'hit').map((d) => d.hit).sort().join() === '0,1,2');
           if (st.id === 'generate' && p === 0.5) ok(`${tag}: answer is mid-way on screen`, +els.mAns.dataset.words > 0 && +els.mAns.dataset.words < state.sc.ansWords.length && els.ansSrcs.hidden);
@@ -1238,13 +1350,23 @@ function probe() {
       state.step = STEPS.findIndex((x) => x.id === 'type'); state.t = 0.5 * stepDur(); render();
       const half = els.fieldTxt.textContent;
       ok(`${lang}/s${sIdx}: typing mid-way shows a partial prefix`, half.length > 0 && half.length < state.sc.q.length && state.sc.q.startsWith(half));
+      // step-by-step mode: a finished step holds on its last frame until "Next step"
+      const iEmbed = STEPS.findIndex((x) => x.id === 'embed');
+      state.playing = true; state.stepMode = true; state.step = iEmbed; state.t = stepDur() - 20; state.wasHeld = false;
+      tick(200); tick(200); render();
+      ok(`${lang}/s${sIdx}: step mode holds at the end of a step`, state.step === iEmbed && state.t === stepDur() && stage.dataset.held === 'true' && els.bPlay.dataset.held === 'true' && stage.dataset.playing === 'false');
+      nextStep();
+      ok(`${lang}/s${sIdx}: "Next step" moves on and plays`, state.step === iEmbed + 1 && state.t === 0 && stage.dataset.held === 'false' && els.bPlay.dataset.held === 'false');
+      state.stepMode = false; state.step = iEmbed; state.t = stepDur() - 20; tick(200);
+      ok(`${lang}/s${sIdx}: auto mode runs straight into the next step`, state.step === iEmbed + 1);
+      state.playing = false; state.stepMode = wasMode;
     }
   }
   // target scales (not live rects, which lag behind while the swap animates)
   const scaleOf = (el) => +(el.style.transform.match(/scale\(([\d.]+)\)/) || [0, 0])[1];
   const mainEl = stage.querySelector('[data-role="main"]'), sideEl = stage.querySelector('[data-role="side"]');
   ok('main panel larger than side panel', scaleOf(mainEl) > scaleOf(sideEl));
-  Object.assign(state, { lang: saved.lang, scenario: saved.scenario, step: saved.step, t: saved.t, playing: was, manualFocus: saved.manualFocus });
+  Object.assign(state, { lang: saved.lang, scenario: saved.scenario, step: saved.step, t: saved.t, playing: was, stepMode: wasMode, wasHeld: saved.wasHeld, manualFocus: saved.manualFocus });
   buildScenario(); applyI18n(); buildScenarioDOM(); state.layoutKey = ''; render();
   const failed = results.filter((r) => !r.ok);
   document.documentElement.dataset.probe = failed.length ? 'fail' : 'pass';
@@ -1259,7 +1381,8 @@ els.scSeg.addEventListener('click', (e) => { const b = e.target.closest('button[
 els.lanes.addEventListener('click', (e) => { const b = e.target.closest('button[data-step]'); if (b) goStep(+b.dataset.step); });
 els.bPlay.addEventListener('click', togglePlay);
 els.bPrev.addEventListener('click', prevStep);
-els.bNext.addEventListener('click', () => goStep(state.step + 1));
+els.bNext.addEventListener('click', nextStep);
+els.bMode.addEventListener('click', toggleMode);
 els.bRestart.addEventListener('click', () => goStep(0));
 els.bSpeed.addEventListener('click', () => { state.speed = (state.speed + 1) % SPEEDS.length; render(); });
 els.swapBtn.addEventListener('click', swapFocus);
@@ -1271,11 +1394,12 @@ document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const k = e.key.toLowerCase();
   if (k === ' ' && !e.target.closest('button')) { e.preventDefault(); togglePlay(); }
-  else if (k === 'arrowright') { e.preventDefault(); goStep(state.step + 1); }
+  else if (k === 'arrowright') { e.preventDefault(); nextStep(); }
   else if (k === 'arrowleft') { e.preventDefault(); prevStep(); }
   else if (k === 'f') swapFocus();
   else if (k === 'r') goStep(0);
   else if (k === 'l') setLang(state.lang === 'pl' ? 'en' : 'pl');
+  else if (k === 'a') toggleMode();
   else if (k >= '1' && k <= String(SCENARIOS.length)) setScenario(+k - 1);
 });
 new ResizeObserver(() => {
@@ -1285,7 +1409,9 @@ new ResizeObserver(() => {
 
 // ─── Init ───
 try { const l = localStorage.getItem(LANG_KEY); if (l === 'pl' || l === 'en') state.lang = l; } catch (e) { /* storage unavailable */ }
+try { if (localStorage.getItem(MODE_KEY) === '0') state.stepMode = false; } catch (e) { /* storage unavailable */ }
 const params = new URLSearchParams(location.search);
+if (params.has('auto')) state.stepMode = false;
 if (params.has('sc')) state.scenario = clamp(+params.get('sc') || 0, 0, SCENARIOS.length - 1);
 buildStatic();
 buildScenario();
@@ -1297,7 +1423,7 @@ if (params.has('pause')) state.playing = false;
 stage.classList.add('no-anim');
 render();
 requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.remove('no-anim')));
-window.App = { state, probe, goStep, setScenario, setLang, swapFocus, render };
+window.App = { state, probe, goStep, nextStep, setScenario, setLang, swapFocus, toggleMode, tick, render };
 if (params.has('probe')) probe();
 requestAnimationFrame(frame);
 
